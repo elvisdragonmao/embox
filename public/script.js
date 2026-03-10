@@ -16,6 +16,7 @@ threadSlider.addEventListener("input", () => {
 	threadVal.textContent = threadSlider.value;
 });
 const getThreads = () => parseInt(threadSlider.value, 10);
+const getDlThreads = getThreads;
 
 // ── Chunked upload ─────────────────────────────────────────
 const CHUNK_SIZE = 2 * 1024 * 1024; // 2 MB per chunk
@@ -160,33 +161,92 @@ const loadFileList = () => {
 };
 loadFileList();
 
-// ── Download with progress bar ─────────────────────────────
+// ── Download with multi-thread (Range requests) ────────────
 const dl = (filename, rowEl) => {
 	const progressEl = rowEl?.querySelector(".dl-progress");
 	const url = `/box?file=${encodeURIComponent(filename)}`;
+	const threads = getDlThreads();
 
-	fetch(url).then(async response => {
-		const contentType = response.headers.get("content-type") || "";
+	// First, HEAD request to get file size
+	fetch(url, { method: "HEAD" }).then(async headRes => {
+		const contentType = headRes.headers.get("content-type") || "";
 		if (contentType.includes("text/html")) {
 			window.location.href = url;
 			return;
 		}
 
-		const contentLength = response.headers.get("content-length");
+		const contentLength = headRes.headers.get("content-length");
 		const total = contentLength ? parseInt(contentLength, 10) : null;
-		const reader = response.body.getReader();
-		const chunks = [];
+
+		// Fall back to single-stream if size unknown or file too small
+		if (!total || total < threads * 1024 || threads === 1) {
+			fetch(url).then(async response => {
+				const reader = response.body.getReader();
+				const chunks = [];
+				let received = 0;
+
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) break;
+					chunks.push(value);
+					received += value.length;
+					if (progressEl) {
+						progressEl.style.width = Math.round((received / (total || received)) * 100) + "%";
+					}
+				}
+
+				if (progressEl) {
+					progressEl.style.width = "100%";
+					setTimeout(() => {
+						progressEl.style.width = "0%";
+					}, 600);
+				}
+
+				const blob = new Blob(chunks);
+				const objUrl = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = objUrl;
+				a.download = filename;
+				a.click();
+				URL.revokeObjectURL(objUrl);
+			});
+			return;
+		}
+
+		// Multi-thread: split into chunks and fetch in parallel
+		const chunkSize = Math.ceil(total / threads);
+		const buffers = new Array(threads);
 		let received = 0;
 
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			chunks.push(value);
-			received += value.length;
-			if (total && progressEl) {
-				progressEl.style.width = Math.round((received / total) * 100) + "%";
+		const fetchChunk = async i => {
+			const start = i * chunkSize;
+			const end = Math.min(start + chunkSize - 1, total - 1);
+			const res = await fetch(url, {
+				headers: { Range: `bytes=${start}-${end}` }
+			});
+			const reader = res.body.getReader();
+			const parts = [];
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				parts.push(value);
+				received += value.length;
+				if (progressEl) {
+					progressEl.style.width = Math.round((received / total) * 100) + "%";
+				}
 			}
-		}
+			// Merge parts into a single Uint8Array
+			const size = parts.reduce((s, v) => s + v.length, 0);
+			const merged = new Uint8Array(size);
+			let off = 0;
+			for (const v of parts) {
+				merged.set(v, off);
+				off += v.length;
+			}
+			buffers[i] = merged;
+		};
+
+		await Promise.all(Array.from({ length: threads }, (_, i) => fetchChunk(i)));
 
 		if (progressEl) {
 			progressEl.style.width = "100%";
@@ -195,7 +255,8 @@ const dl = (filename, rowEl) => {
 			}, 600);
 		}
 
-		const blob = new Blob(chunks);
+		// Merge all chunks in order into a single Blob
+		const blob = new Blob(buffers);
 		const objUrl = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = objUrl;
