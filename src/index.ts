@@ -147,18 +147,25 @@ app.post("/upload/assemble", express.json(), async (req: Request, res: Response)
 	const finalPath = path.join(BOX_DIR, finalName);
 
 	try {
-		const writeStream = fs.createWriteStream(finalPath);
+		// Verify all chunks exist before starting assembly
 		for (let i = 0; i < totalChunks; i++) {
 			const chunkPath = path.join(TEMP_DIR, `${uploadId}_${i}`);
 			if (!fs.existsSync(chunkPath)) {
-				writeStream.destroy();
-				fs.unlinkSync(finalPath);
 				res.status(400).json({ error: `Missing chunk ${i}.` });
 				return;
 			}
-			const data = fs.readFileSync(chunkPath);
-			writeStream.write(data);
-			fs.unlinkSync(chunkPath);
+		}
+
+		const writeStream = fs.createWriteStream(finalPath);
+		for (let i = 0; i < totalChunks; i++) {
+			const chunkPath = path.join(TEMP_DIR, `${uploadId}_${i}`);
+			const readStream = fs.createReadStream(chunkPath);
+			await new Promise<void>((resolve, reject) => {
+				readStream.pipe(writeStream, { end: false });
+				readStream.on("end", resolve);
+				readStream.on("error", reject);
+			});
+			await fs.promises.unlink(chunkPath);
 		}
 		writeStream.end();
 		await new Promise<void>((resolve, reject) => {
