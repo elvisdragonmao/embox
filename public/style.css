@@ -1,0 +1,557 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap");
+
+:root {
+	color-scheme: light dark;
+	--primary: light-dark(#2f80ec, hsl(214, 83%, 15%));
+	--secondary: #3778cd;
+	--light: light-dark(#ecf3fe, hsl(217, 90%, 4%));
+	--dark: light-dark(#111, #f0f0f0);
+	--muted: light-dark(#666, #aaa);
+	--white: light-dark(#fff, #0a0f1e);
+	--list-bg: light-dark(#ecf3fe, #000d24);
+	--hover-bg: light-dark(hsla(0, 0%, 0%, 0.06), hsla(0, 0%, 100%, 0.08));
+	--border: light-dark(hsla(214, 60%, 60%, 0.2), hsla(214, 60%, 60%, 0.15));
+	--radius: 1em;
+	--transition: 0.18s ease;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	min-height: 100vh;
+	background: var(--primary);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 4em 2em;
+	font-family: "Quicksand", sans-serif;
+	color: var(--dark);
+}
+
+header {
+	position: fixed;
+	top: 0.5em;
+	left: 1em;
+	color: light-dark(#fff, #ffffff95);
+	z-index: -1;
+	user-select: none;
+}
+header svg {
+	fill: light-dark(#00000095, #ffffff95);
+}
+
+h1,
+h2 {
+	display: inline-block;
+	font-weight: 400;
+	font-size: 2.5em;
+}
+h2 {
+	font-size: 1.2em;
+}
+
+main {
+	width: 100%;
+	max-width: 1080px;
+	height: 640px;
+	flex: 1;
+	background: var(--white);
+	border-radius: var(--radius);
+	display: flex;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+/* ── Left panel ── */
+form {
+	flex: 1;
+	padding: 1.5em;
+	display: flex;
+	flex-direction: column;
+	gap: 1em;
+}
+
+input[type="file"] {
+	display: none;
+}
+input[type="submit"] {
+	display: none;
+}
+
+#drag {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 0.6em;
+	cursor: pointer;
+	border: 2px dashed transparent;
+	border-radius: 0.75em;
+	padding: 1.5em;
+	color: var(--muted);
+	transition:
+		border-color var(--transition),
+		background var(--transition),
+		color var(--transition);
+	text-align: center;
+}
+#drag:hover,
+#drag:focus-visible {
+	border-color: var(--secondary);
+	background: var(--hover-bg);
+	color: var(--dark);
+}
+#drag svg {
+	opacity: 0.5;
+	transition: opacity var(--transition);
+}
+#drag:hover svg,
+#drag:focus-visible svg {
+	opacity: 0.85;
+}
+
+/* Thread count selector */
+.thread-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6em;
+	font-size: 0.82rem;
+	color: var(--muted);
+}
+.thread-row label {
+	white-space: nowrap;
+}
+.thread-row input[type="range"] {
+	display: block;
+	flex: 1;
+	accent-color: var(--secondary);
+	cursor: pointer;
+}
+.thread-row span {
+	min-width: 2.2em;
+	text-align: right;
+	font-weight: 600;
+	color: var(--dark);
+}
+
+/* Upload progress area */
+#uploadArea {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+}
+.upload-item {
+	font-size: 0.82rem;
+}
+.upload-item-header {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 0.25em;
+	color: var(--dark);
+	gap: 0.5em;
+}
+.upload-item-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1;
+}
+.upload-item-pct {
+	color: var(--muted);
+	white-space: nowrap;
+}
+.progress-bar-wrap {
+	width: 100%;
+	height: 5px;
+	background: var(--border);
+	border-radius: 9999px;
+	overflow: hidden;
+}
+.progress-bar {
+	height: 100%;
+	background: var(--secondary);
+	border-radius: 9999px;
+	transition: width 0.1s linear;
+	width: 0%;
+}
+
+/* ── Right panel ── */
+#fileList {
+	flex: 1;
+	background: var(--list-bg);
+	border-radius: 0 var(--radius) var(--radius) 0;
+	overflow-y: auto;
+	padding: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+}
+
+.file {
+	display: flex;
+	align-items: center;
+	padding: 0.75em 1em;
+	border-radius: 0.75em;
+	cursor: pointer;
+	border: 1px solid transparent;
+	outline: none;
+	width: 100%;
+	background: transparent;
+	color: var(--dark);
+	transition:
+		background var(--transition),
+		border-color var(--transition),
+		transform var(--transition),
+		box-shadow var(--transition);
+	position: relative;
+	user-select: none;
+}
+.file:hover {
+	background: var(--hover-bg);
+	border-color: var(--border);
+	transform: translateY(-1px);
+	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+.file:active {
+	transform: translateY(0);
+	box-shadow: none;
+}
+.file:focus-visible {
+	border-color: var(--secondary);
+}
+
+/* File type badge */
+.type {
+	background: var(--light);
+	--doc-color: 217;
+	border: 2px solid hsl(var(--doc-color), 60%, 51%);
+	color: hsl(var(--doc-color), 60%, 51%);
+	width: 2.8rem;
+	height: 2.8rem;
+	font-size: 0.7rem;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-transform: uppercase;
+	margin-right: 1em;
+	flex-shrink: 0;
+	pointer-events: none;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	transition: transform var(--transition);
+}
+.file:hover .type {
+	transform: scale(1.08);
+}
+
+/* Format colours */
+/* Images */
+.jpg,
+.jpeg,
+.png,
+.gif,
+.webp,
+.avif,
+.heic,
+.heif,
+.tiff,
+.tif,
+.bmp,
+.ico {
+	--doc-color: 130;
+}
+/* Vector / design */
+.svg,
+.ai,
+.sketch,
+.figma {
+	--doc-color: 340;
+}
+/* Documents */
+.pdf {
+	--doc-color: 0;
+}
+.doc,
+.docx,
+.odt,
+.rtf {
+	--doc-color: 210;
+}
+.xls,
+.xlsx,
+.ods,
+.csv {
+	--doc-color: 140;
+}
+.ppt,
+.pptx,
+.odp {
+	--doc-color: 25;
+}
+/* Code */
+.js,
+.mjs,
+.cjs {
+	--doc-color: 55;
+}
+.ts,
+.tsx {
+	--doc-color: 200;
+}
+.jsx {
+	--doc-color: 195;
+}
+.py {
+	--doc-color: 220;
+}
+.rb {
+	--doc-color: 0;
+}
+.go {
+	--doc-color: 190;
+}
+.rs {
+	--doc-color: 20;
+}
+.java,
+.kt,
+.kts {
+	--doc-color: 35;
+}
+.c,
+.cpp,
+.cc,
+.cxx,
+.h,
+.hpp {
+	--doc-color: 260;
+}
+.cs {
+	--doc-color: 270;
+}
+.php {
+	--doc-color: 280;
+}
+.html,
+.htm {
+	--doc-color: 15;
+}
+.css,
+.scss,
+.sass,
+.less {
+	--doc-color: 230;
+}
+.json,
+.yaml,
+.yml,
+.toml,
+.xml {
+	--doc-color: 170;
+}
+.sh,
+.bash,
+.zsh,
+.fish {
+	--doc-color: 120;
+}
+/* Archives */
+.zip,
+.rar,
+.tar,
+.gz,
+.bz2,
+.xz,
+.zst,
+.lz,
+.lz4,
+.lzma,
+.lzo,
+.z,
+.7z {
+	--doc-color: 40;
+}
+/* Executables */
+.exe,
+.msi,
+.dmg,
+.app,
+.apk,
+.deb,
+.rpm {
+	--doc-color: 280;
+}
+/* Audio */
+.mp3,
+.wav,
+.flac,
+.aac,
+.ogg,
+.m4a,
+.wma,
+.opus {
+	--doc-color: 320;
+}
+/* Video */
+.mp4,
+.mkv,
+.mov,
+.avi,
+.webm,
+.flv,
+.wmv,
+.m4v {
+	--doc-color: 185;
+}
+/* Fonts */
+.ttf,
+.otf,
+.woff,
+.woff2 {
+	--doc-color: 310;
+}
+/* Text / misc */
+.txt,
+.md,
+.rst,
+.log {
+	--doc-color: 217;
+}
+
+.text {
+	flex: 1;
+	overflow: hidden;
+}
+.text h3 {
+	margin-bottom: 0.25em;
+	font-size: 0.92rem;
+	font-weight: 600;
+	color: var(--dark);
+	word-break: break-all;
+}
+.text p {
+	font-size: 0.76rem;
+	color: var(--muted);
+}
+
+/* Action button on hover */
+.action-btn {
+	background: var(--white);
+	border: 1px solid var(--border);
+	border-radius: 0.4em;
+	padding: 0.3em 0.5em;
+	cursor: pointer;
+	font-size: 0.75rem;
+	color: var(--muted);
+	display: flex;
+	align-items: center;
+	gap: 0.3em;
+	transition:
+		opacity var(--transition),
+		background var(--transition),
+		color var(--transition),
+		border-color var(--transition);
+	white-space: nowrap;
+	flex-shrink: 0;
+	margin-left: 0.5em;
+	opacity: 0;
+}
+.file:hover .action-btn,
+.file:focus-within .action-btn {
+	opacity: 1;
+}
+.action-btn:hover {
+	background: var(--secondary);
+	color: #fff;
+	border-color: var(--secondary);
+}
+
+/* Download progress inside file row */
+.dl-progress {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	height: 3px;
+	background: var(--secondary);
+	border-radius: 0 0 0.75em 0.75em;
+	width: 0%;
+	transition: width 0.1s linear;
+}
+
+/* Toast */
+#toast {
+	position: fixed;
+	bottom: 1.5em;
+	left: 50%;
+	transform: translateX(-50%) translateY(1em);
+	background: #222;
+	color: #fff;
+	padding: 0.5em 1.2em;
+	border-radius: 2em;
+	font-size: 0.85rem;
+	opacity: 0;
+	pointer-events: none;
+	transition:
+		opacity 0.2s,
+		transform 0.2s;
+	z-index: 100;
+}
+#toast.show {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+}
+
+a {
+	text-decoration: none;
+}
+
+.repo {
+	position: fixed;
+	top: 1em;
+	right: 1em;
+	z-index: 1;
+	transition: transform var(--transition);
+}
+.repo:hover {
+	transform: scale(1.1) rotate(-4deg);
+}
+.repo svg {
+	fill: light-dark(#00000095, #ffffff95);
+}
+
+/* Drag overlay */
+#dragOver {
+	position: fixed;
+	inset: 0;
+	background: rgba(47, 128, 236, 0.85);
+	z-index: 10;
+	display: flex;
+	pointer-events: none;
+	justify-content: center;
+	align-items: center;
+	color: #fff;
+	font-size: 1.5rem;
+	font-weight: 600;
+	backdrop-filter: blur(6px);
+	transition: opacity 0.2s ease-out;
+	opacity: 0;
+}
+
+@media (max-aspect-ratio: 1/1) {
+	main {
+		flex-direction: column;
+		height: calc(100vh - 12rem);
+	}
+	#fileList {
+		border-radius: 0 0 var(--radius) var(--radius);
+	}
+	form {
+		min-height: 260px;
+	}
+}

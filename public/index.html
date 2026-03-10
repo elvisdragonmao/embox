@@ -1,372 +1,61 @@
 <!-- @format -->
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>embox</title>
-        <style>
-            @import url("https://fonts.googleapis.com/css2?family=Quicksand&display=swap");
-            :root {
-                color-scheme: light dark;
-                --primary: light-dark(#2f80ec, hsl(214, 83%, 15%));
-                --secondary: #3778cd;
-                --light: light-dark(#ecf3fe, hsl(217, 90%, 4%));
-                --dark: light-dark(#000#FFF);
-                --white: light-dark(#fff, #000);
-            }
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>embox</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<header>
+			<h1>embox</h1>
+			<h2>A file sharing site by Elvis Mao</h2>
+		</header>
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                height: 100vh;
-                background: var(--primary);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 4em 2em;
-                font-family: "Quicksand", sans-serif;
-                font-optical-sizing: auto;
-                color: var(--dark);
-            }
-            header {
-                position: fixed;
-                top: 0.5em;
-                left: 1em;
-                color: light-dark(#FFF, #ffffff95);
-                z-index: -1;
-            }
-            header svg{
-                fill: light-dark(#00000095, #ffffff95);
-            }
-            h1,
-            h2 {
-                display: inline-block;
-                font-weight: 400;
-                font-size: 2.5em;
-            }
-            h2 {
-                font-size: 1.2em;
-            }
-            main {
-                width: 100%;
-                height: 100%;
-                max-width: 1000px;
-                background: var(--white);
-                border-radius: 1em;
-                display: flex;
-                box-shadow: rgba(0, 0, 0, 0.732) 0px 5px 15px 0px;
-            }
+		<a href="https://github.com/elvisdragonmao/embox" class="repo" target="_blank" aria-label="GitHub">
+			<svg height="28" viewBox="0 0 16 16" width="28" aria-hidden="true">
+				<path
+					d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"
+				/>
+			</svg>
+		</a>
 
-            form,
-            #fileList {
-                flex: 1;
-                height: 100%;
-            }
+		<main>
+			<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+				<input type="file" name="file" id="file" multiple />
+				<label for="file" id="drag" tabindex="0">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+						<polyline points="17 8 12 3 7 8" />
+						<line x1="12" y1="3" x2="12" y2="15" />
+					</svg>
+					<span>Click to choose files or drag files here</span>
+				</label>
 
-            input {
-                display: block;
-                width: 100%;
-            }
+				<div class="thread-row">
+					<label for="threadCount">Threads:</label>
+					<input type="range" id="threadCount" min="1" max="32" value="32" step="1" />
+					<span id="threadVal">32</span>
+				</div>
 
-            input {
-                display: none;
-            }
+				<div id="uploadArea"></div>
+				<input type="submit" />
+			</form>
 
-            #drag {
-                width: 100%;
-                flex: 1;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                cursor: pointer;
-            }
-            #drag:hover {
-                border: var(--primary) 3px dashed;
-                border-radius: 1em;
-            }
-            #fileList {
-                background: light-dark(#ecf3fe,#000d24);
-                border-radius: 0 1em 1em 0;
-                overflow-y: auto;
-                padding: 1em;
-            }
-            .file {
-                display: flex;
-                align-items: center;
-                padding: 1em;
-                border-radius: 1em;
-                margin-bottom: 1em;
-                cursor: pointer;
-                border: none;
-                outline: transparent;
-                width: 100%;
-                background: transparent;
-            }
-            .file:hover {
-                background: light-dark( hsla(0, 0%, 0%, 0.074),#ffffff21);
-            }
-            button h3 {
-                margin-bottom: 0.5em;
-                font-size: 1rem;
-                font-weight: 400;
-                color: var(--dark);
-                word-wrap: break-word;
-                text-align: left;
-            }
-            .type {
-                background: var(--light);
-                --doc-color: 217;
-                border: hsl(var(--doc-color), 60%, 51%) 2px solid;
-                color: hsl(var(--doc-color), 60%, 51%);
-                width: 3rem;
-                height: 3rem;
-                font-size: 0.8rem;
-                border-radius: 50%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                text-transform: uppercase;
-                margin-right: 1.5em;
-                flex-shrink: 0;
-                pointer-events: none;
-            }
+			<div id="fileList"></div>
+		</main>
 
-            .doc {
-                --doc-color: 217;
-            }
+		<div id="dragOver">
+			<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5em">
+				<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+				<polyline points="17 8 12 3 7 8" />
+				<line x1="12" y1="3" x2="12" y2="15" />
+			</svg>
+			Drop Files Anywhere
+		</div>
+		<div id="toast"></div>
 
-            .jpg,
-            .png,
-            .jpeg,
-            .gif,
-            .webp {
-                --doc-color: 90;
-            }
-            .svg {
-                --doc-color: 340;
-            }
-
-            .exe {
-                --doc-color: 280;
-            }
-
-            .pdf {
-                --doc-color: 0;
-            }
-
-            .zip,
-            .rar,
-            .tar,
-            .gz,
-            .bz2,
-            .xz,
-            .zst,
-            .lz,
-            .lz4,
-            .lzip,
-            .lzma,
-            .lzo,
-            .z,
-            .dz,
-            .zim {
-                --doc-color: 40;
-            }
-            .text p {
-                font-size: 0.8rem;
-                color: #666;
-            }
-            a {
-                text-decoration: none;
-            }
-            form {
-                padding: 1em;
-                display: flex;
-                flex-direction: column;
-            }
-            #dragOver {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(148, 108, 0, 0.8);
-                z-index: 1;
-                display: flex;
-                pointer-events: none;
-                justify-content: center;
-                align-items: center;
-                color: #fff;
-                backdrop-filter: blur(5px);
-                transition: opacity 0.3s ease-out;
-                opacity: 0;
-            }
-            #password {
-                display: block;
-            }
-            .setPassword > label {
-                margin-bottom: 0.5em;
-                display: block;
-            }
-            .setPassword {
-                padding: 1rem;
-            }
-            .repo {
-                position: fixed;
-                top: 1em;
-                right: 1em;
-                z-index: 1;
-            }
-            .repo svg {
-                fill: light-dark(#00000095, #ffffff95);
-            }
-            @media (max-aspect-ratio: 1/1) {
-                main {
-                    flex-direction: column;
-                }
-                #fileList {
-                    border-radius: 0 0 1em 1em;
-                }
-                .file {
-                    border-radius: 1em;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <header>
-            <h1>embox</h1>
-            <h2>A file system by Elvis Mao</h2>
-        </header>
-        <a href="https://github.com/Edit-Mr/embox" class="repo" target="_blank">
-            <svg height="32" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="32" data-view-component="true">
-                <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
-            </svg>
-        </a>
-        <main>
-            <form action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" id="file" multiple />
-                <label for="file" id="drag"
-                    >Click to choose files or drag files</label
-                >
-                <div class="setPassword">
-                    <label for="password">File Password (Optional)</label>
-                    <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        placeholder="Set or Enter Password"
-                    />
-                </div>
-                <input type="submit" />
-            </form>
-            <div id="fileList"></div>
-        </main>
-        <div id="dragOver">Drop Files Anywhere</div>
-        <script>
-            // Fetch file list and render on the page
-            fetch("/list")
-                .then(response => response.json())
-                .then(files => {
-                    const fileList = document.getElementById("fileList");
-                    // order files by time
-                    files.sort(
-                        (a, b) =>
-                            new Date(b.uploadDate) - new Date(a.uploadDate)
-                    );
-                    fileList.innerHTML = files
-                        .map(
-                            file => `<button class="file" onclick="dl('${
-                                file.file
-                            }')">
-                                    <div class="type ${file.extension
-                                        .replace(/</g, "&lt;")
-                                        .replace(
-                                            />/g,
-                                            "&gt;"
-                                        )}">${file.extension
-                                .replace(/</g, "&lt;")
-                                .replace(/>/g, "&gt;")}</div>
-                                    <div class="text">
-                                        <h3>${file.file
-                                            .replace(/</g, "&lt;")
-                                            .replace(/>/g, "&gt;")}</h3>
-                                        <p>${file.size}&nbsp;&nbsp;${new Date(
-                                file.uploadDate
-                            ).toLocaleString()}</p>
-                                    </div>
-                                </button>
-                        `
-                        )
-                        .join("");
-                })
-                .catch(error => console.error("Error fetching files:", error));
-
-            const dl = file => {
-                fetch(
-                    `/box?file=${file}&password=` +
-                        document.getElementById("password").value
-                ).then(response => {
-                    if (
-                        response.headers
-                            .get("content-type")
-                            .includes("text/html")
-                    ) {
-                        window.location.href =
-                            `/box?file=${file}&password=` +
-                            document.getElementById("password").value;
-                    } else {
-                        return response.blob().then(blob => {
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement("a");
-                            a.href = url;
-                            a.download = file;
-                            a.click();
-                        });
-                    }
-                });
-            };
-
-            // Upload file
-            document
-                .getElementById("file")
-                .addEventListener("change", event => {
-                    // press submit button
-                    event.target.parentElement.submit();
-                });
-
-            //allow drop file anywhere in the page
-            document.addEventListener("dragover", event => {
-                event.preventDefault();
-                document.getElementById("dragOver").style.opacity = "1";
-            });
-
-            document.addEventListener("dragleave", event => {
-                event.preventDefault();
-                document.getElementById("dragOver").style.opacity = "0";
-            });
-
-            document.addEventListener("drop", event => {
-                event.preventDefault();
-                document.getElementById("dragOver").style.opacity = "0";
-                const file = event.dataTransfer.files[0];
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append(
-                    "password",
-                    document.getElementById("password").value
-                );
-                fetch("/upload", {
-                    method: "POST",
-                    body: formData,
-                }).then(() => {
-                    location.reload();
-                });
-            });
-        </script>
-    </body>
+		<script src="script.js"></script>
+	</body>
 </html>
